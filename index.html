@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Edukasi Quiz Sehari-hari </title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      color: #333;
+    }
+
+    .quiz-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #e0e7ff;
+      color: #4338ca;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 15px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      background: #e2e8f0;
+      height: 8px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      background: #4f46e5;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+
+    h2 {
+      margin-bottom: 18px;
+      font-size: 1.15rem;
+      color: #1e293b;
+      line-height: 1.4;
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .btn {
+      background: #f8fafc;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+      color: #334155;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: #f1f5f9;
+      border-color: #cbd5e1;
+    }
+
+    .btn.correct {
+      background: #dcfce7;
+      border-color: #22c55e;
+      color: #15803d;
+    }
+
+    .btn.wrong {
+      background: #fee2e2;
+      border-color: #ef4444;
+      color: #b91c1c;
+    }
+
+    .btn-action {
+      margin-top: 20px;
+      background: #4f46e5;
+      color: #ffffff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: none;
+      width: 100%;
+      font-size: 1rem;
+    }
+
+    .btn-action:hover {
+      background: #4338ca;
+    }
+
+    .score-box {
+      display: none;
+    }
+
+    .score-icon {
+      font-size: 3.5rem;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="quiz-card" id="quiz">
+    <div class="badge">Game Quiz Nuril</div>
+    <div class="progress-bar"><div class="progress" id="progress"></div></div>
+    <h2 id="question">Memuat soal...</h2>
+    <div class="options" id="options-container"></div>
+    <button class="btn-action" id="next-btn" onclick="nextQuestion()">Lanjut Pertanyaan ➔</button>
+  </div>
+
+  <div class="quiz-card score-box" id="score-box">
+    <div class="score-icon">🎯</div>
+    <h2>Hasil Kuis Sesi Ini</h2>
+    <p style="margin: 15px 0; font-size: 1.1rem;" id="score-text"></p>
+    <button class="btn-action" style="display: block;" onclick="restartQuiz()">Acak & Main Lagi 🔄</button>
+  </div>
+
+  <script>
+    // Bank Soal Pengetahuan & Sains Sehari-hari (50 Soal)
+    const questionBank = [
+      { question: "Mengapa es batu bisa mengapung di atas air murni?", options: ["Massa jenis es lebih kecil dari air murni", "Es mengandung minyak alami", "Suhu air murni terlalu panas", "Es lebih berat dari air murni"], answer: 0 },
+      { question: "Berapa jam lama tidur malam yang ideal bagi kesehatan orang dewasa?", options: ["3 - 4 jam", "7 - 9 jam", "10 - 12 jam", "13 - 15 jam"], answer: 1 },
+      { question: "Fitur pada ponsel yang memfilter pesan spam secara otomatis memanfaatkan...", options: ["Deteksi pola AI", "Sensor cahaya", "Layar sentuh", "Sistem pendingin"], answer: 0 },
+      { question: "Mengapa potongan buah apel berubah menjadi kecokelatan setelah didiamkan?", options: ["Reaksi oksidasi dengan udara", "Kehilangan kadar gula", "Efek sinar lampu", "Proses pembekuan"], answer: 0 },
+      { question: "Aplikasi peta digital memperkirakan waktu tempuh lalu lintas menggunakan...", options: ["Analisis data real-time AI", "Peta kertas cetak", "Kompas magnetik", "Lensa kamera"], answer: 0 },
+      { question: "Mengapa mematikan lampu saat tidur baik untuk kesehatan tubuh?", options: ["Memicu produksi hormon melatonin", "Mencegah kerusakan televisi", "Menurunkan berat badan secara drastis", "Mengubah warna dinding ruangan"], answer: 0 },
+      { question: "Fungsi utama filter HEPA pada pembersih udara ruangan adalah...", options: ["Menyaring debu mikro dan alergen", "Mendinginkan suhu ruangan", "Menghasilkan arus listrik", "Menyemprotkan parfum otomatis"], answer: 0 },
+      { question: "Mengapa air garam mendidih pada suhu yang lebih tinggi daripada air murni?", options: ["Garam meningkatkan titik didih air", "Garam menurunkan massa jenis air", "Garam membuat air cepat menguap", "Garam menyerap seluruh kalor"], answer: 0 },
+      { question: "Mengapa cermin di kamar mandi berembun saat kita mandi air hangat?", options: ["Uap air hangat mengembun pada permukaan cermin yang dingin", "Cermin menyerap air", "Cermin menghasilkan gas", "Suhu cermin lebih panas dari uap air"], answer: 0 },
+      { question: "Organ tubuh manusia mana yang bertanggung jawab menyaring racun dari darah?", options: ["Hati (Liver) dan Ginjal", "Paru-paru", "Lambung", "Jantung"], answer: 0 },
+      { question: "Mengapa kabel listrik di tiang jalan sengaja dipasang sedikit kendur?", options: ["Mencegah putus saat menyusut di malam hari", "Menghemat penggunaan bahan kabel", "Sengaja agar terlihat rapi", "Menambah kecepatan arus listrik"], answer: 0 },
+      { question: "Gas apa yang paling banyak terkandung di dalam atmosfer bumi?", options: ["Oksigen", "Nitrogen", "Karbondioksida", "Hidrogen"], answer: 1 },
+      { question: "Mengapa keringat dapat membantu mendinginkan suhu tubuh manusia?", options: ["Penguapan keringat menyerap panas dari kulit", "Keringat mengandung es", "Keringat menutup pori-pori kulit", "Keringat mengubah warna kulit"], answer: 0 },
+      { question: "Senyawa kimia yang memberikan warna hijau pada daun tanaman adalah...", options: ["Klorofil", "Karotenoid", "Melanin", "Hemoglobin"], answer: 0 },
+      { question: "Mengapa warna langit terlihat biru pada siang hari yang cerah?", options: ["Hamburan cahaya matahari oleh molekul udara", "Pantulan dari warna air laut", "Atmosfer bumi terbuat dari kaca biru", "Awan memancarkan cahaya biru"], answer: 0 },
+      { question: "Alat rumah tangga yang menggunakan gelombang mikro untuk memanaskan makanan adalah...", options: ["Microwave", "Blender", "Kulkas", "Mesin cuci"], answer: 0 },
+      { question: "Mengapa garam digunakan untuk mencairkan es di jalanan musim dingin?", options: ["Garam menurunkan titik beku air", "Garam menghasilkan api", "Garam menyerap es", "Garam membuat es menjadi padat"], answer: 0 },
+      { question: "Vitamin yang dibentuk tubuh saat kulit terpapar sinar matahari pagi adalah...", options: ["Vitamin A", "Vitamin C", "Vitamin D", "Vitamin E"], answer: 2 },
+      { question: "Mengapa kita mendengar suara guruh setelah melihat kilatan petir?", options: ["Kecepatan cahaya lebih cepat daripada kecepatan suara", "Kecepatan suara lebih cepat daripada cahaya", "Guruh dihasilkan sebelum petir", "Suara petir memantul di awan dulu"], answer: 0 },
+      { question: "Sensor pada smartphone yang mendeteksi perubahan orientasi layar (potret/lanskap) adalah...", options: ["Gyroscope / Accelerometer", "Sensor Sidik Jari", "NFC", "GPS"], answer: 0 },
+      { question: "Mengapa sabun dapat membersihkan noda minyak dan lemak pada piring?", options: ["Molekul sabun memiliki ujung yang mengikat air dan minyak", "Sabun membakar lemak secara kimia", "Sabun menguapkan minyak", "Sabun membekukan lemak"], answer: 0 },
+      { question: "Kandungan apa pada kopi yang menyebabkan kita merasa lebih terjaga?", options: ["Kafein", "Glukosa", "Kalsium", "Vitamin B"], answer: 0 },
+      { question: "Mengapa meniup makanan panas dapat membantunya cepat dingin?", options: ["Mempercepat penguapan dan mengganti udara panas di atas makanan", "Menambahkan es dari napas kita", "Mengubah struktur zat makanan", "Menyerap panas ke dalam mulut"], answer: 0 },
+      { question: "Proses tumbuhan membuat makanannya sendiri menggunakan bantuan cahaya matahari disebut...", options: ["Fotosintesis", "Respirasi", "Fermentasi", "Transpirasi"], answer: 0 },
+      { question: "Mengapa pakaian berwarna hitam terasa lebih panas saat dipakai di bawah terik matahari?", options: ["Warna hitam menyerap hampir seluruh spektrum cahaya matahari", "Warna hitam memantulkan seluruh cahaya", "Warna hitam menghasilkan listrik", "Warna hitam menahan udara lembap"], answer: 0 },
+      { question: "Mengapa minyak dan air tidak dapat menyatu secara alami?", options: ["Air bersifat polar sedangkan minyak bersifat non-polar", "Minyak terlalu dingin", "Air memakan molekul minyak", "Suhu kedua zat selalu berbeda"], answer: 0 },
+      { question: "Sensor pada ponsel yang mematikan layar saat ditempelkan ke telinga saat menelepon adalah...", options: ["Proximity Sensor", "Barometer", "Magnetometer", "Heart Rate Sensor"], answer: 0 },
+      { question: "Mengapa roti bisa mengembang saat dipanggang?", options: ["Ragi menghasilkan gas karbondioksida (CO2)", "Tepung menyerap udara di dalam oven", "Air di dalam adonan membeku", "Gula berubah menjadi gas oksigen"], answer: 0 },
+      { question: "Gas apa yang dikeluarkan oleh manusia saat menghembuskan napas?", options: ["Karbondioksida", "Oksigen murni", "Nitrogen cair", "Helium"], answer: 0 },
+      { question: "Mengapa menyiram tanaman terlalu banyak air bisa menyebabkan akarnya membusuk?", options: ["Akar kekurangan oksigen karena rongga tanah terisi penuh air", "Air merusak klorofil", "Tanaman menjadi terlalu dingin", "Air mengubah pH tanah jadi asam keras"], answer: 0 },
+      { question: "Apa fungsi utama dari vaksin bagi sistem kekebalan tubuh?", options: ["Melatih sistem imun mengenali dan melawan patogen tertentu", "Membunuh bakteri secara langsung seperti antibiotik", "Meningkatkan jumlah sel darah merah", "Membersihkan racun di pencernaan"], answer: 0 },
+      { question: "Mengapa balon yang diisi gas helium bisa terbang melayang di udara?", options: ["Helium memiliki massa jenis lebih ringan dari udara sekitar", "Helium memiliki sifat magnetik", "Helium menarik gravitasi bumi", "Helium menghasilkan angin ke bawah"], answer: 0 },
+      { question: "Apa penyebab utama suara dengkur/ngorok saat seseorang tidur?", options: ["Getaran jaringan lunak di saluran pernapasan yang menyempit", "Suara detak jantung yang terlalu kencang", "Udara yang keluar dari telinga", "Gesekan antar gigi saat tidur"], answer: 0 },
+      { question: "Mengapa luka memar pada kulit umumnya berwarna keunguan atau biru?", options: ["Pecahnya pembuluh darah kecil (kapiler) di bawah kulit", "Infeksi jamur pada permukaan kulit", "Kulit kekurangan oksigen dari luar", "Pengendapan garam dapur di bawah kulit"], answer: 0 },
+      { question: "Teknologi jaringan seluler generasi kelima yang menawarkan kecepatan sangat tinggi adalah...", options: ["5G", "3G", "Dial-up", "Bluetooth"], answer: 0 },
+      { question: "Mengapa pupil mata manusia bisa membesar dan mengecil?", options: ["Regulasi jumlah cahaya yang masuk ke dalam mata", "Menyesuaikan warna benda yang dilihat", "Meningkatkan daya pendengaran", "Menjaga suhu bola mata"], answer: 0 },
+      { question: "Bahan utama pembuat kaca jendela rumah adalah...", options: ["Pasir kuarsa (Silika)", "Tanah liat", "Serbuk kayu", "Batu kapur murni"], answer: 0 },
+      { question: "Mengapa makanan yang disimpan di dalam kulkas tidak cepat basi?", options: ["Suhu dingin memperlambat pertumbuhan bakteri dan mikroba", "Kulkas menyedot seluruh udara di dalamnya", "Kulkas memancarkan sinar pembersih", "Kulkas menghilangkan kadar air makanan"], answer: 0 },
+      { question: "Bagian tubuh mana yang mengontrol seluruh aktivitas dan respons tubuh manusia?", options: ["Otak", "Jantung", "Hati", "Paru-paru"], answer: 0 },
+      { question: "Mengapa menyikat gigi sebelum tidur penting dilakukan?", options: ["Mencegah pertumbuhan bakteri pemakan sisa makanan penyebab gigi berlubang", "Agar gigi tumbuh lebih cepat", "Meningkatkan daya ingat saat tidur", "Mencegah bibir pecah-pecah"], answer: 0 },
+      { question: "Format file yang umum digunakan untuk menyimpan gambar berukuran ringkas di web adalah...", options: ["JPEG / PNG", "MP3", "EXE", "DOCX"], answer: 0 },
+      { question: "Mengapa kipas angin membuat kita merasa lebih sejuk meskipun tidak mendinginkan udara?", options: ["Mempercepat penguapan keringat di kulit kita", "Menurunkan suhu udara secara nyata", "Menghasilkan es batu halus di udara", "Menghilangkan oksigen di udara"], answer: 0 },
+      { question: "Organ manusia yang berfungsi memompa darah ke seluruh tubuh adalah...", options: ["Jantung", "Ginjal", "Paru-paru", "Lambung"], answer: 0 },
+      { question: "Mengapa mata kita terasa perih saat memotong bawang merah?", options: ["Bawang melepas gas senyawa sulfur yang bereaksi dengan air mata", "Bawang memancarkan gelombang panas", "Tangan kita menyentuh mata", "Bau bawang merusak kornea"], answer: 0 },
+      { question: "Jenis baterai yang paling sering digunakan pada smartphone modern saat ini adalah...", options: ["Lithium-ion / Lithium-polymer", "Baterai Seng-Karbon", "Baterai Basah Timbal", "Baterai Nikel-Kadmium"], answer: 0 },
+      { question: "Mengapa suara kita terdengar berbeda saat direkam dibandingkan saat kita berbicara langsung?", options: ["Saat berbicara langsung, kita juga mendengar getaran suara lewat tulang tengkorak", "Rekaman selalu merusak frekuensi suara", "Telinga kita tersumbat saat berbicara", "Mikrofon menambah efek gema"], answer: 0 },
+      { question: "Mineral yang sangat dibutuhkan oleh tubuh untuk menjaga kekuatan tulang dan gigi adalah...", options: ["Kalsium", "Natrium", "Kalium", "Belerang"], answer: 0 },
+      { question: "Alat yang digunakan untuk mengukur suhu tubuh manusia secara digital adalah...", options: ["Termometer", "Barometer", "Voltmeter", "Higrometer"], answer: 0 },
+      { question: "Mengapa daun gugur berubah warna menjadi kuning atau cokelat pada musim kemarau?", options: ["Kandungan klorofil berkurang sehingga pigmen lain terlihat", "Daun menyerap tanah cokelat", "Daun terkena air hujan", "Suhu udara membekukan daun"], answer: 0 },
+      { question: "Mengapa menatap layar gadget terlalu lama bisa menyebabkan mata lelah?", options: ["Kurangnya frekuensi berkedip dan paparan sinar biru terus-menerus", "Ukuran mata bertambah besar", "Layar gadget memancarkan radiasi panas tinggi", "Mata berhenti bergerak sama sekali"], answer: 0 }
+    ];
+
+    let selectedQuestions = [];
+    let currentIdx = 0;
+    let score = 0;
+
+    // Fungsi pengacak urutan array (Fisher-Yates Shuffle)
+    function shuffleArray(array) {
+      const arr = [...array];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    }
+
+    function initQuiz() {
+      currentIdx = 0;
+      score = 0;
+      
+      // 1. Acak seluruh 50 bank soal
+      const shuffledBank = shuffleArray(questionBank);
+      
+      // 2. Ambil 5 soal pertama hasil pengacakan
+      selectedQuestions = shuffledBank.slice(0, 5).map(q => {
+        // 3. Acak pula urutan opsi jawaban A, B, C, D
+        const optionsObj = q.options.map((opt, idx) => ({ text: opt, isCorrect: idx === q.answer }));
+        const shuffledOptions = shuffleArray(optionsObj);
+        return {
+          question: q.question,
+          options: shuffledOptions.map(o => o.text),
+          answer: shuffledOptions.findIndex(o => o.isCorrect)
+        };
+      });
+
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const q = selectedQuestions[currentIdx];
+      document.getElementById("question").innerText = `${currentIdx + 1}. ${q.question}`;
+      document.getElementById("progress").style.width = ((currentIdx + 1) / selectedQuestions.length * 100) + "%";
+      const container = document.getElementById("options-container");
+      container.innerHTML = "";
+      document.getElementById("next-btn").style.display = "none";
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        btn.innerText = opt;
+        btn.onclick = () => selectOption(btn, idx, q.answer);
+        container.appendChild(btn);
+      });
+    }
+
+    function selectOption(selectedBtn, idx, correctIdx) {
+      const buttons = document.querySelectorAll(".btn");
+      buttons.forEach(btn => btn.disabled = true);
+      if (idx === correctIdx) {
+        selectedBtn.classList.add("correct");
+        score++;
+      } else {
+        selectedBtn.classList.add("wrong");
+        buttons[correctIdx].classList.add("correct");
+      }
+      document.getElementById("next-btn").style.display = "block";
+    }
+
+    function nextQuestion() {
+      currentIdx++;
+      if (currentIdx < selectedQuestions.length) {
+        loadQuestion();
+      } else {
+        showScore();
+      }
+    }
+
+    function showScore() {
+      document.getElementById("quiz").style.display = "none";
+      document.getElementById("score-box").style.display = "block";
+      document.getElementById("score-text").innerText = `Skor Anda: ${score} dari ${selectedQuestions.length} soal!`;
+    }
+
+    function restartQuiz() {
+      document.getElementById("score-box").style.display = "none";
+      document.getElementById("quiz").style.display = "block";
+      initQuiz();
+    }
+
+    // Jalankan kuis saat halaman dibuka
+    initQuiz();
+  </script>
+
+</body>
+</html>
